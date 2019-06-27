@@ -10,3 +10,10 @@ def safe_division(v1, v2, default_result=0):
         return v1 / v2
     except ZeroDivisionError:
         return default_result
+
+
+def safe_byte2str(byteobj):
+    if isinstance(byteobj, bytes):
+        return byteobj.decode()
+    assert isinstance(byteobj, str)
+    return byteobj

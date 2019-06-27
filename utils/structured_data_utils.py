@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from utils import rawdata
+from utils.safeutils import safe_byte2str
 
 BLANK_ROW_COUNT = 3
 BLANK_COL_COUNT = 1
@@ -17,7 +18,7 @@ class StructuredData(object):
 
         ret = -1
         for idx, each in enumerate(label):
-            if each == label_target:
+            if safe_byte2str(each) == label_target:
                 ret = idx
                 break
         if ret == -1:
@@ -28,7 +29,7 @@ class StructuredData(object):
     def get_value_with_label(self, index, label_target):
         label_idx = self.get_label_idx(label_target)
 
-        return self.data[index][label_idx]
+        return safe_byte2str(self.data[index][label_idx])
 
 
 def encode(target):
