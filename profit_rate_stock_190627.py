@@ -9,6 +9,7 @@ import utils.structured_data_utils
 from utils.filter import filter_remove_not_equals, filter_remove_greater_than, \
     filter_remove_equals, filter_remove_less_than
 from utils.printutils import utf8print
+from utils.safeutils import safe_division
 from utils.sortutils import sort_by
 
 
@@ -98,7 +99,7 @@ def get_avg_balance_with_period(structured_data, from_date, to_date):
 
     passed_days = (to_date - from_date).days + 1
     # print(passed_days)
-    return sum_balance / passed_days
+    return safe_division(sum_balance, passed_days)
 
 
 def get_valueprofit_with_period(structured_data, curr_date):
@@ -168,20 +169,21 @@ def main():
     result = filter_remove_not_equals(result, "종류", "주식")
     result = filter_remove_equals(result, "수량", "")
 
-    # interval = 59
-    # from_date = datetime.date(2019, 1, 1)
-    # to_date = datetime.date.today()
-    # curr_date = from_date
+    interval = 7
+    from_date = datetime.date(2019, 1, 11)
+    to_date = datetime.date.today()
+    curr_date = from_date + datetime.timedelta(days=interval)
 
     # while True:
-    #     if curr_date > to_date:
-    #         break
+    #     curr_from_date = from_date
+    #     curr_to_date = curr_date
 
     for curr_from_date, curr_to_date in [
-        (datetime.date(2019, 1, 1), datetime.date(2019, 6, 28)),
-        (datetime.date(2019, 1, 1), datetime.date(2019, 3, 1)),
-        (datetime.date(2019, 3, 1), datetime.date(2019, 5, 1)),
-        (datetime.date(2019, 5, 1), datetime.date(2019, 7, 1)),
+        (datetime.date(2019, 1, 1), datetime.date.today()),
+        # (datetime.date(2019, 1, 1), datetime.date(2019, 7, 7)),
+        # (datetime.date(2019, 1, 1), datetime.date(2019, 7, 6)),
+        # (datetime.date(2019, 3, 1), datetime.date(2019, 5, 1)),
+        # (datetime.date(2019, 5, 1), datetime.date(2019, 7, 1)),
     ]:
         # curr_to_date = curr_from_date + datetime.timedelta(days=interval-1)
         avg_balance = get_avg_balance_with_period(result, from_date=curr_from_date, to_date=curr_to_date)
@@ -189,10 +191,14 @@ def main():
         print("[{} ~ {}] avg_balance=[{}]".format(curr_from_date.strftime("%Y-%m-%d"), curr_to_date.strftime("%Y-%m-%d"), avg_balance))
         print("[{} ~ {}] netprofit=[{}]".format(curr_from_date.strftime("%Y-%m-%d"), curr_to_date.strftime("%Y-%m-%d"), netprofit))
         passed_days = (curr_to_date - curr_from_date).days
-        annual_profit_rate = pow(pow(1 + netprofit / avg_balance, 1 / passed_days), 365) - 1
+        annual_profit_rate = pow(pow(1 + safe_division(netprofit, avg_balance), safe_division(1, passed_days)), 365) - 1
         print("[{} ~ {}] annual_profit_rate=[{:0.2f}%]".format(curr_from_date.strftime("%Y-%m-%d"), curr_to_date.strftime("%Y-%m-%d"), annual_profit_rate * 100))
+        print("")
 
-        # curr_from_date += datetime.timedelta(days=interval)
+        # curr_date += datetime.timedelta(days=interval)
+
+        # if curr_date > to_date:
+        #     break
 
 
 if __name__ == '__main__':

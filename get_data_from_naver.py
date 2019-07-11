@@ -87,14 +87,14 @@ def get_corpcode_or_none(corpname):
     # exit(1)
 
 
-def get_price_datalist(corpcode, from_date, to_date):
-    corpcode = get_corpcode_or_none(corpcode)
+def get_price_datalist(corpname, from_date, to_date):
+    corpcode = get_corpcode_or_none(corpname)
 
     ret = {}
 
     page = 1
     while True:
-        url = "https://finance.naver.com/item/sise_day.nhn?code={}&page={}".format(corpcode, page)
+        url = "https://finance.naver.com/item/sise_day.nhn?code={}&page={}".format(corpname, page)
         for idx, each in pd.read_html(url)[0].dropna().iterrows():
             each_date = datetime.datetime.strptime(each.날짜, "%Y.%m.%d").date()
             if each_date < from_date:
