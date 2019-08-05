@@ -32,8 +32,9 @@ def download_and_save_corplist(path):
 def download_krx_corplist():
     ret = {}
 
+    url = 'http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13'
     code_df = pd.read_html(
-        'http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13',
+        url,
         header=0)[0]
     code_df.종목코드 = code_df.종목코드.map('{:06d}'.format)
     code_df = code_df[['회사명', '종목코드']]
@@ -46,24 +47,24 @@ def download_krx_corplist():
 def download_etf_corplist():
     ret = {}
 
-    url = "http://kind.krx.co.kr/disclosure/disclosurebystocktype.do?method=searchDisclosureByStockTypeEtf"
-    res = requests.get(url)
-    for eachline in safe_byte2str(res.content).splitlines():
-        eachline = eachline.strip()
-        if "<option value=\"\">전체</option>" in eachline:
-            continue
+    url = "http://kind.krx.co.kr/corpgeneral/listedissuestatusdetail.do"
+    r = requests.post(url, data={
+        "method": "searchListedIssueStatDetailSub",
+        "forward": "listedissuestatdetail_down",
+        "currentPageSize": 3000,
+        "pageIndex": 1,
+        "selDate": "20190729",
+        "mktId": "STK",
+        "secugrpId": "EF",
+        "detailType": 2,
+    })
 
-        if "<option value=" in eachline:
-            eachline = eachline.replace("<option value=\"", '')
-            corpcode_idx_ed = eachline.find("\">")
-            corpcode = eachline[:corpcode_idx_ed]
+    code_df = pd.read_html(r.content, header=0)[0]
 
-            eachline = eachline[corpcode_idx_ed + len("\">"):]
-            corpname = eachline.replace("</option>", '')
-
-            corpcode = ''.join([each for each in corpcode if each.isdigit()])
-
-            ret[corpname] = corpcode
+    code_df.종목코드 = code_df.종목코드
+    code_df = code_df[['종목명', '종목코드']]
+    for idx, each in code_df.종목명.items():
+        ret[each] = code_df.종목코드[idx][3:-3]
 
     return ret
 
@@ -94,7 +95,7 @@ def get_price_datalist(corpname, from_date, to_date):
 
     page = 1
     while True:
-        url = "https://finance.naver.com/item/sise_day.nhn?code={}&page={}".format(corpname, page)
+        url = "https://finance.naver.com/item/sise_day.nhn?code={}&page={}".format(corpcode, page)
         for idx, each in pd.read_html(url)[0].dropna().iterrows():
             each_date = datetime.datetime.strptime(each.날짜, "%Y.%m.%d").date()
             if each_date < from_date:
@@ -107,15 +108,17 @@ def get_price_datalist(corpname, from_date, to_date):
         page += 1
 
 
-def get_price_data(corpcode, curr_date):
-    corpcode = get_corpcode_or_none(corpcode)
-    if corpcode is None:
-        return None
+def get_price_data(corpname, curr_date):
+    corpcode = get_corpcode_or_none(corpname)
+    assert corpcode is not None, f"Invalid corpname. [{corpname}]"
 
     page = 1
     while True:
         url = "https://finance.naver.com/item/sise_day.nhn?code={}&page={}".format(corpcode, page)
-        for idx, each in pd.read_html(url)[0].dropna().iterrows():
+
+        na_droped_table = pd.read_html(url)[0].dropna()
+        assert not na_droped_table.empty, f"Invalid corp url [{url}]"
+        for idx, each in na_droped_table.iterrows():
             each_date = datetime.datetime.strptime(each.날짜, "%Y.%m.%d").date()
             if each_date <= curr_date:
                 # print("each_date=[{}]".format(each_date))

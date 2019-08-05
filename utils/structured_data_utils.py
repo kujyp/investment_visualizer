@@ -7,6 +7,13 @@ BLANK_ROW_COUNT = 3
 BLANK_COL_COUNT = 1
 
 
+def safe_decode(param):
+    if not isinstance(param, bytes):
+        return
+
+    return param.decode()
+
+
 class StructuredData(object):
     def __init__(self, data, label):
         super(StructuredData, self).__init__()
@@ -30,6 +37,13 @@ class StructuredData(object):
         label_idx = self.get_label_idx(label_target)
 
         return safe_byte2str(self.data[index][label_idx])
+
+    def get_value_list_with_label(self, label_target):
+        ret = set()
+        label_idx = self.get_label_idx(label_target)
+        for idx, each in enumerate(self.data):
+            ret.add(safe_decode(each[label_idx]))
+        return ret
 
 
 def encode(target):

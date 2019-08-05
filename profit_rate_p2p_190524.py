@@ -6,7 +6,7 @@ import locale
 from copy import deepcopy
 
 from utils import structured_data_utils
-from utils.dateutils import get_today, date_minus
+from utils.dateutils import get_today_as_str, date_minus
 from utils.filter import filter_remove_greater_than, filter_remove_not_equals
 from utils.printutils import print_profits
 from utils.profit import get_average_balance, get_start_date, \
@@ -34,11 +34,11 @@ def print_information(structure_data, target_date, investment_type, investment_n
 
 
 def main():
-    target_date_as_string = get_today()
+    target_date_as_string = get_today_as_str()
     # target_date_as_string = "2019-03-31"
 
-    strcted_data = structured_data_utils.get_structed_data_from_date(get_today())
-    strcted_data = sort_by(strcted_data, "날짜")
+    structured_data = structured_data_utils.get_structed_data_from_date(get_today_as_str())
+    structured_data = sort_by(structured_data, "날짜")
 
     for p2pname in [
         "어니스트펀드",
@@ -47,7 +47,7 @@ def main():
         "투게더",
     ]:
         print(p2pname)
-        print_information(strcted_data, target_date_as_string, "p2p", p2pname)
+        print_information(structured_data, target_date_as_string, "p2p", p2pname)
         print()
 
     # print("Total")

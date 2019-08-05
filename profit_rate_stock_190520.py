@@ -7,7 +7,7 @@ import json
 import os
 from copy import deepcopy
 
-from utils.dateutils import get_today
+from utils.dateutils import get_today_as_str
 import utils.structured_data_utils
 from utils.filter import filter_remove_not_equals, filter_remove_equals
 from utils.printutils import print_profits
@@ -134,7 +134,7 @@ def get_total_amount_by_date(structured_data):
 
 
 def main():
-    target_date = get_today()
+    target_date = get_today_as_str()
 
     result = utils.structured_data_utils.get_structed_data_from_date(target_date)
 

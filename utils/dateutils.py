@@ -1,8 +1,16 @@
 import datetime
 
 
-def get_today():
+def get_today_as_str():
     return (datetime.datetime.today()).strftime("%Y-%m-%d")
+
+
+def str2date(strdate):
+    return datetime.datetime.strptime(strdate, "%Y-%m-%d").date()
+
+
+def date2str(date1):
+    return date1.strftime("%Y-%m-%d")
 
 
 def date_minus(date1, date2):

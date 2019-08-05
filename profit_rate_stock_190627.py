@@ -4,7 +4,7 @@ from __future__ import print_function
 import datetime
 
 from get_data_from_naver import get_price_data
-from utils.dateutils import get_today
+from utils.dateutils import get_today_as_str, str2date, date2str
 import utils.structured_data_utils
 from utils.filter import filter_remove_not_equals, filter_remove_greater_than, \
     filter_remove_equals, filter_remove_less_than
@@ -160,8 +160,51 @@ def get_netprofit_with_period(structured_data, from_date, to_date):
     # print(result.data)
 
 
+def get_first_date(structured_data):
+    structured_data = sort_by(structured_data, "날짜")
+    return structured_data.get_value_with_label(0, "날짜")
+
+
+def print_annual_profit_rate(structured_data, from_date, to_date):
+    if type(from_date) == datetime.date:
+        pass
+
+    avg_balance = get_avg_balance_with_period(
+        structured_data,
+        from_date=from_date,
+        to_date=to_date
+    )
+    netprofit = get_netprofit_with_period(
+        structured_data,
+        from_date=from_date,
+        to_date=to_date,
+    )
+    print("[{} ~ {}] avg_balance=[{}]".format(
+        date2str(from_date),
+        date2str(to_date),
+        avg_balance)
+    )
+    print("[{} ~ {}] netprofit=[{}]".format(
+        date2str(from_date),
+        date2str(to_date),
+        netprofit)
+    )
+    passed_days = (to_date - from_date).days
+    annual_profit_rate = pow(
+        pow(1 + safe_division(netprofit, avg_balance), safe_division(1, passed_days)),
+        365
+    ) - 1
+
+    print("[{} ~ {}] annual_profit_rate=[{:0.2f}%]".format(
+        date2str(from_date),
+        date2str(to_date),
+        annual_profit_rate * 100
+    ))
+    print("")
+
+
 def main():
-    target_date = get_today()
+    target_date = get_today_as_str()
 
     result = utils.structured_data_utils.get_structed_data_from_date(target_date)
 
@@ -169,36 +212,15 @@ def main():
     result = filter_remove_not_equals(result, "종류", "주식")
     result = filter_remove_equals(result, "수량", "")
 
-    interval = 7
-    from_date = datetime.date(2019, 1, 11)
-    to_date = datetime.date.today()
-    curr_date = from_date + datetime.timedelta(days=interval)
-
-    # while True:
-    #     curr_from_date = from_date
-    #     curr_to_date = curr_date
-
-    for curr_from_date, curr_to_date in [
-        (datetime.date(2019, 1, 1), datetime.date.today()),
-        # (datetime.date(2019, 1, 1), datetime.date(2019, 7, 7)),
-        # (datetime.date(2019, 1, 1), datetime.date(2019, 7, 6)),
-        # (datetime.date(2019, 3, 1), datetime.date(2019, 5, 1)),
-        # (datetime.date(2019, 5, 1), datetime.date(2019, 7, 1)),
-    ]:
-        # curr_to_date = curr_from_date + datetime.timedelta(days=interval-1)
-        avg_balance = get_avg_balance_with_period(result, from_date=curr_from_date, to_date=curr_to_date)
-        netprofit = get_netprofit_with_period(result, from_date=curr_from_date, to_date=curr_to_date)
-        print("[{} ~ {}] avg_balance=[{}]".format(curr_from_date.strftime("%Y-%m-%d"), curr_to_date.strftime("%Y-%m-%d"), avg_balance))
-        print("[{} ~ {}] netprofit=[{}]".format(curr_from_date.strftime("%Y-%m-%d"), curr_to_date.strftime("%Y-%m-%d"), netprofit))
-        passed_days = (curr_to_date - curr_from_date).days
-        annual_profit_rate = pow(pow(1 + safe_division(netprofit, avg_balance), safe_division(1, passed_days)), 365) - 1
-        print("[{} ~ {}] annual_profit_rate=[{:0.2f}%]".format(curr_from_date.strftime("%Y-%m-%d"), curr_to_date.strftime("%Y-%m-%d"), annual_profit_rate * 100))
-        print("")
-
-        # curr_date += datetime.timedelta(days=interval)
-
-        # if curr_date > to_date:
-        #     break
+    first_date = str2date(get_first_date(result))
+    print_annual_profit_rate(result, first_date, datetime.date.today())
+    # corp_list = result.get_value_list_with_label("종목")
+    # for each in corp_list:
+    #     print(each)
+    #     filtered = filter_remove_not_equals(result, "종목", each)
+    #     first_date = str2date(get_first_date(filtered))
+    #     print_annual_profit_rate(filtered, first_date, datetime.date.today())
+    #     print()
 
 
 if __name__ == '__main__':
