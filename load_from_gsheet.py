@@ -13,7 +13,20 @@ def main():
     scope = ['https://spreadsheets.google.com/feeds',
              'https://www.googleapis.com/auth/drive']
 
-    credentials = ServiceAccountCredentials.from_json_keyfile_name('gsheet-investment-fd7827dd5f67.json', scope)
+    credential_filename = None
+    for each in os.listdir('.'):
+        if os.path.isdir(each):
+            continue
+        if each.startswith('gsheet-investment') \
+                and os.path.splitext(each)[1] == '.json':
+            credential_filename = each
+            break
+
+    if not credential_filename:
+        print("Credential file not found.")
+        exit(1)
+
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(credential_filename, scope)
 
     gc = gspread.authorize(credentials)
 
