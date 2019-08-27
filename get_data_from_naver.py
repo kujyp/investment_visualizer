@@ -9,6 +9,10 @@ import requests
 from utils.safeutils import safe_byte2str
 
 
+KRX_KEYNAME = 'KRX'
+ETF_KEYNAME = 'ETF'
+
+
 def download_and_save_corplist(path):
     krx_corplist = download_krx_corplist()
     etf_corplist = download_etf_corplist()
@@ -17,9 +21,11 @@ def download_and_save_corplist(path):
     }
 
     corplist = {
-        **krx_corplist,
-        **etf_corplist,
-        **extra_corplist,
+        KRX_KEYNAME: {
+            **krx_corplist,
+            **extra_corplist,
+        },
+        ETF_KEYNAME: etf_corplist,
     }
 
     if not os.path.exists(os.path.dirname(path)):
@@ -78,10 +84,22 @@ def get_corplist(force_refresh=False):
         return json.loads(f.read())
 
 
+def is_etf(corpname):
+    corplist = get_corplist()
+    # print(corplist)
+
+    for eachname, eachcode in corplist[ETF_KEYNAME].items():
+        # print(eachname, eachcode)
+        if eachname.upper() == corpname.upper():
+            return True
+    return False
+
+
 def get_corpcode_or_none(corpname):
     corplist = get_corplist()
     # print(corplist)
-    for eachname, eachcode in corplist.items():
+
+    for eachname, eachcode in {**corplist[KRX_KEYNAME], **corplist[ETF_KEYNAME]}.items():
         # print(eachname, eachcode)
         if eachname.upper() == corpname.upper():
             return eachcode
@@ -108,7 +126,13 @@ def get_price_datalist(corpname, from_date, to_date):
         page += 1
 
 
+SAVED_DATA = {}
+
+
 def get_price_data(corpname, curr_date):
+    key = f"{corpname}_{curr_date}"
+    if key in SAVED_DATA:
+        return SAVED_DATA[key]
     corpcode = get_corpcode_or_none(corpname)
     assert corpcode is not None, f"Invalid corpname. [{corpname}]"
 
@@ -123,7 +147,8 @@ def get_price_data(corpname, curr_date):
             if each_date <= curr_date:
                 # print("each_date=[{}]".format(each_date))
                 # print("curr_date=[{}]".format(curr_date))
-                return each.종가
+                SAVED_DATA[key] = each.종가
+                return SAVED_DATA[key]
 
         page += 1
 

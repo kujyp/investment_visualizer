@@ -59,7 +59,10 @@ def filter_remove_less_than(structured_data, label_target, filter_target):
 
     length = len(data)
     for i in range(length):
-        if structured_data.get_value_with_label(i, label_target) >= filter_target:
+        val = safe_byte2str(structured_data.get_value_with_label(i, label_target))
+        if isinstance(filter_target, int):
+            val = int(val)
+        if val >= filter_target:
             ret.append(deepcopy(data[i]))
 
     return StructuredData(ret, label)

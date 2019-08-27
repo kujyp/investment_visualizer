@@ -1,8 +1,12 @@
 import datetime
 
 
+def get_today():
+    return datetime.date.today()
+
+
 def get_today_as_str():
-    return (datetime.datetime.today()).strftime("%Y-%m-%d")
+    return get_today().strftime("%Y-%m-%d")
 
 
 def str2date(strdate):
