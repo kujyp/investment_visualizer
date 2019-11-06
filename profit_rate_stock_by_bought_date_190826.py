@@ -133,12 +133,19 @@ def main():
     result = sort_by(result, "날짜")
     result = filter_remove_not_equals(result, "종류", "주식")
     result = filter_remove_equals(result, "수량", "")
+    # result = filter_remove_not_equals(result, "종목", "아프리카TV")
+    # result = filter_remove_not_equals(result, "종목", "시디즈")
+    # result = filter_remove_not_equals(result, "종목", "엔에이치엔")
+    # result = filter_remove_not_equals(result, "종목", "이마트")
+    result = filter_remove_not_equals(result, "종목", "카카오")
+
+    do_something(result, "2019-01-01", "2019-09-01")
 
     # do_something(result, "2019-01-01", "2019-04-06")
     # do_something(result, "2019-04-07", "2019-06-01")
     # do_something(result, "2019-06-01", "2019-07-01")
     # do_something(result, "2019-07-01", "2019-08-01")
-    do_something(result, "2019-08-01", "2019-09-01")
+    # do_something(result, "2019-08-01", "2019-09-01")
 
 
 if __name__ == '__main__':
